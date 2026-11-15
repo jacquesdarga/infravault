@@ -13,7 +13,7 @@ Deux canaux, par ordre de préférence :
 
 1. **GitHub — signalement privé.** Onglet *Security* du dépôt → *Report a vulnerability*. C'est le
    canal recommandé : l'échange reste privé jusqu'à publication, et l'historique est conservé.
-2. **Par courriel** — `<adresse de contact à compléter avant publication du dépôt>`.
+2. **Par courriel** — `jacquesdarga@fasocivic.org`.
 
 Si vous le souhaitez, chiffrez votre message ; indiquez-le et une clé publique vous sera fournie.
 

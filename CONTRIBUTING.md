@@ -102,6 +102,24 @@ que dans `Presentation`, pas d'appel à `DateTime.UtcNow` en dehors de `IClock`.
 - Les commentaires expliquent **pourquoi**, pas quoi. Le code dit déjà quoi.
 - Les versions de paquets vivent dans `Directory.Build.props`, jamais en dur dans un `.csproj`.
 
+## Dépendances
+
+Le projet étant sous GPL-3.0, **toute nouvelle dépendance doit être compatible GPL-3.0**. MIT,
+BSD, Apache-2.0 et les licences GPL le sont. Une licence propriétaire, GPL-2.0 *seule* (sans la
+clause « ou ultérieure ») ou à clause non commerciale ne l'est pas, et rendrait le projet
+indistribuable.
+
+Les dépendances actuelles, toutes compatibles :
+
+| Licence | Paquets |
+| --- | --- |
+| MIT | EF Core et EF Core Sqlite, Microsoft.Data.Sqlite, Microsoft.Extensions.\*, Microsoft.Win32.SystemEvents, CommunityToolkit.Mvvm, Konscious.Security.Cryptography.Argon2 |
+| Apache-2.0 | FluentValidation, Serilog et ses sinks, xunit |
+
+Indiquez la licence du paquet dans la description de votre PR. Et demandez-vous d'abord si la
+dépendance est nécessaire : le rapport `.docx` est généré sans bibliothèque OpenXML, et c'est très
+bien ainsi.
+
 ## Invariants de sécurité
 
 Toute modification doit les préserver. Ils sont couverts par des tests, et une PR qui les casse ne
