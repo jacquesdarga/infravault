@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/InfraVault.Shared/InfraVault.Shared.csproj" />
+    <Project Path="src/InfraVault.Domain/InfraVault.Domain.csproj" />
+    <Project Path="src/InfraVault.Application/InfraVault.Application.csproj" />
+    <Project Path="src/InfraVault.Infrastructure/InfraVault.Infrastructure.csproj" />
+    <Project Path="src/InfraVault.Presentation/InfraVault.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/InfraVault.Domain.Tests/InfraVault.Domain.Tests.csproj" />
+    <Project Path="tests/InfraVault.Application.Tests/InfraVault.Application.Tests.csproj" />
+    <Project Path="tests/InfraVault.Infrastructure.Tests/InfraVault.Infrastructure.Tests.csproj" />
+    <Project Path="tests/InfraVault.Security.Tests/InfraVault.Security.Tests.csproj" />
+    <Project Path="tests/InfraVault.Integration.Tests/InfraVault.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

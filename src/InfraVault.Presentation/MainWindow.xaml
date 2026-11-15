@@ -1,0 +1,79 @@
+<Window x:Class="InfraVault.Presentation.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:InfraVault.Presentation.Controls"
+        Title="InfraVault" Icon="pack://application:,,,/InfraVault;component/Resources/infravault.ico" Width="1360" Height="860" MinWidth="1040" MinHeight="660"
+        WindowStartupLocation="CenterScreen" Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}"
+        FontFamily="{StaticResource Font.Body}" FontSize="13" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal" TextOptions.TextRenderingMode="ClearType">
+    <Grid x:Name="Root">
+        <!-- Écran courant : création, déverrouillage ou application -->
+        <ContentControl Content="{Binding Screen}" Focusable="False"/>
+
+        <!-- Dialogues superposés -->
+        <ItemsControl ItemsSource="{Binding Dialogs.Stack}" Focusable="False">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid Background="{DynamicResource Overlay}" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
+                        <Grid.InputBindings>
+                            <KeyBinding Key="Escape" Command="{Binding CancelCommand}"/>
+                        </Grid.InputBindings>
+                        <Border Width="{Binding Width}" MaxHeight="760" Margin="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Background="{DynamicResource Surface}" BorderBrush="{DynamicResource LineStrong}" BorderThickness="1" CornerRadius="12">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="40" ShadowDepth="10" Opacity="0.35" Color="Black"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid Margin="22,16,12,12">
+                                    <TextBlock Text="{Binding Title}" Style="{StaticResource H2}" VerticalAlignment="Center" Margin="0,0,40,0"/>
+                                    <Button Style="{StaticResource IconButton}" HorizontalAlignment="Right" Command="{Binding CancelCommand}" ToolTip="Fermer (Échap)">
+                                        <c:IconView Kind="x" Width="16" Height="16"/>
+                                    </Button>
+                                </Grid>
+                                <ContentControl Grid.Row="1" Content="{Binding}" Focusable="False" Margin="22,0,22,20"/>
+                                <ProgressBar Grid.Row="1" IsIndeterminate="True" VerticalAlignment="Bottom" Height="3" Margin="12,0"
+                                             Visibility="{Binding IsBusy, Converter={StaticResource Vis}}"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Notifications -->
+        <ItemsControl ItemsSource="{Binding Toasts.Items}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,22,44" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{DynamicResource SurfaceAlt}" BorderBrush="{DynamicResource LineStrong}" BorderThickness="1" CornerRadius="9"
+                            Padding="13,10,10,10" Margin="0,8,0,0" MaxWidth="440" MinWidth="260">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="18" ShadowDepth="4" Opacity="0.3" Color="Black"/>
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <c:IconView Kind="{Binding Icon}" Width="17" Height="17" VerticalAlignment="Top" Margin="0,1,10,0" c:Tinted.ForegroundKey="{Binding BrushKey}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Message}" Style="{StaticResource Wrap}" Foreground="{DynamicResource Text}"/>
+                            <Button Grid.Column="2" Style="{StaticResource IconButton}" Width="22" Height="22" Margin="8,-3,0,0" VerticalAlignment="Top"
+                                    Command="{Binding DataContext.DismissToastCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                <c:IconView Kind="x" Width="12" Height="12"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</Window>

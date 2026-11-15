@@ -1,0 +1,192 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:InfraVault.Presentation.Controls"
+                    xmlns:vm="clr-namespace:InfraVault.Presentation.ViewModels">
+
+    <!-- Logo : cadran de coffre -->
+    <ControlTemplate x:Key="Logo">
+        <Viewbox>
+            <Grid Width="48" Height="48">
+                <Ellipse Stroke="{DynamicResource Accent}" StrokeThickness="3.2"/>
+                <Ellipse Margin="8" Stroke="{DynamicResource Accent}" StrokeThickness="2" StrokeDashArray="1.2 2.2" Opacity="0.8"/>
+                <Ellipse Margin="17" Fill="{DynamicResource Accent}"/>
+                <Rectangle Width="3.2" Height="12" RadiusX="1.6" RadiusY="1.6" Fill="{DynamicResource Accent}" VerticalAlignment="Top" Margin="0,3,0,0"/>
+            </Grid>
+        </Viewbox>
+    </ControlTemplate>
+
+    <!-- Panneau de marque commun aux écrans d'entrée -->
+    <ControlTemplate x:Key="BrandPanel">
+        <Grid Background="{DynamicResource BgDeep}" ClipToBounds="True">
+            <!-- Cadran concentrique décoratif -->
+            <Grid Width="760" Height="760" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-260,0,0,-280" Opacity="0.9">
+                <Ellipse Stroke="{DynamicResource Line}" StrokeThickness="1"/>
+                <Ellipse Margin="70" Stroke="{DynamicResource Line}" StrokeThickness="1" StrokeDashArray="2 6"/>
+                <Ellipse Margin="140" Stroke="{DynamicResource LineStrong}" StrokeThickness="1"/>
+                <Ellipse Margin="210" Stroke="{DynamicResource Accent}" StrokeThickness="1.5" StrokeDashArray="1 9" Opacity="0.7"/>
+                <Ellipse Margin="280" Stroke="{DynamicResource Line}" StrokeThickness="1"/>
+                <Ellipse Margin="330" Fill="{DynamicResource AccentSoft}"/>
+            </Grid>
+            <StackPanel Margin="56,52,48,0" VerticalAlignment="Top">
+                <StackPanel Orientation="Horizontal">
+                    <Control Template="{StaticResource Logo}" Width="38" Height="38" Focusable="False"/>
+                    <TextBlock Text="InfraVault" FontFamily="{StaticResource Font.Display}" FontSize="26" FontWeight="SemiBold" Margin="13,0,0,0"
+                               VerticalAlignment="Center" Foreground="{DynamicResource Text}"/>
+                </StackPanel>
+                <TextBlock Margin="0,64,0,0" FontFamily="{StaticResource Font.Display}" FontSize="38" FontWeight="SemiBold" LineHeight="46"
+                           Foreground="{DynamicResource Text}" TextWrapping="Wrap" TextTrimming="None" MaxWidth="460" HorizontalAlignment="Left">
+                    Connaître son infrastructure.<LineBreak/>Sécuriser ses accès.<LineBreak/><Run Foreground="{DynamicResource Accent}">Maîtriser son information.</Run>
+                </TextBlock>
+                <StackPanel Margin="0,38,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <c:IconView Kind="shield-check" Foreground="{DynamicResource Teal}" Margin="0,0,11,0"/>
+                        <TextBlock Text="Chiffrement AES-256-GCM, clé dérivée par Argon2id" Style="{StaticResource Muted}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <c:IconView Kind="drive" Foreground="{DynamicResource Teal}" Margin="0,0,11,0"/>
+                        <TextBlock Text="Données locales, utilisables sans Internet" Style="{StaticResource Muted}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <c:IconView Kind="history" Foreground="{DynamicResource Teal}" Margin="0,0,11,0"/>
+                        <TextBlock Text="Journal d'audit scellé, sauvegardes chiffrées" Style="{StaticResource Muted}"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Jauge de robustesse -->
+    <DataTemplate x:Key="StrengthMeter">
+        <Grid Margin="0,7,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ProgressBar Minimum="0" Maximum="1" Value="{Binding StrengthRatio, Mode=OneWay}" VerticalAlignment="Center" c:Tinted.ForegroundKey="{Binding StrengthBrushKey}"/>
+            <TextBlock Grid.Column="1" Margin="11,0,0,0" Style="{StaticResource Faint}">
+                <Run Text="{Binding Strength.Label, Mode=OneWay}"/><Run Text="{Binding Strength.Bits, Mode=OneWay, StringFormat=' · ≈ {0:0} bits', TargetNullValue=''}"/>
+            </TextBlock>
+        </Grid>
+    </DataTemplate>
+
+    <!-- ───────── Création du coffre ───────── -->
+    <DataTemplate DataType="{x:Type vm:CreateVaultViewModel}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="11*"/>
+                <ColumnDefinition Width="12*"/>
+            </Grid.ColumnDefinitions>
+            <Control Template="{StaticResource BrandPanel}" Focusable="False"/>
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Width="420" VerticalAlignment="Center" Margin="0,40">
+                    <TextBlock Text="Première ouverture" Style="{StaticResource Overline}"/>
+                    <TextBlock Text="Créer votre coffre" Style="{StaticResource H1}" Margin="0,4,0,8"/>
+                    <TextBlock Style="{StaticResource Wrap}" Foreground="{DynamicResource TextMuted}" Margin="0,0,0,24"
+                               Text="Le mot de passe maître protège la clé de chiffrement du coffre. Il n'est enregistré nulle part : personne ne peut le retrouver à votre place."/>
+
+                    <ContentControl Focusable="False" Content="{Binding Error}" ContentTemplate="{StaticResource ErrorText}" Visibility="{Binding Error, Converter={StaticResource Vis}}"/>
+
+                    <TextBlock Text="Nom du coffre" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding VaultName, UpdateSourceTrigger=PropertyChanged}" MaxLength="120"/>
+
+                    <TextBlock Text="Mot de passe maître (12 caractères minimum)" Style="{StaticResource FieldLabel}" Margin="0,16,0,5"/>
+                    <PasswordBox c:Assist.BindPassword="True" c:Assist.Password="{Binding Password, UpdateSourceTrigger=PropertyChanged}" c:Assist.FocusOnLoad="True"/>
+                    <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource StrengthMeter}"/>
+
+                    <TextBlock Text="Confirmer le mot de passe maître" Style="{StaticResource FieldLabel}" Margin="0,16,0,5"/>
+                    <PasswordBox c:Assist.BindPassword="True" c:Assist.Password="{Binding Confirmation, UpdateSourceTrigger=PropertyChanged}"
+                                 c:Assist.EnterCommand="{Binding CreateCommand}"/>
+
+                    <CheckBox IsChecked="{Binding SeedDemo}" Margin="0,20,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Charger une infrastructure d'exemple"/>
+                            <TextBlock Text="Datacenter, cluster Proxmox, VM, stack de conteneurs, flux et ports — pour découvrir l'application." Style="{StaticResource Faint}"
+                                       TextWrapping="Wrap" TextTrimming="None" MaxWidth="380" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </CheckBox>
+
+                    <Button Style="{StaticResource Primary}" Height="40" Margin="0,26,0,0" Command="{Binding CreateCommand}"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource Not}}">
+                        <StackPanel Orientation="Horizontal">
+                            <c:IconView Kind="lock" Style="{StaticResource BtnIcon}"/>
+                            <TextBlock Text="Créer le coffre"/>
+                        </StackPanel>
+                    </Button>
+                    <StackPanel Margin="0,14,0,0" Visibility="{Binding IsBusy, Converter={StaticResource Vis}}">
+                        <ProgressBar IsIndeterminate="True"/>
+                        <TextBlock Text="{Binding BusyText}" Style="{StaticResource Faint}" Margin="0,7,0,0"/>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,26,0,16"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Vous avez déjà un coffre ?" Style="{StaticResource Muted}" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource Link}" Content="Restaurer une sauvegarde" Command="{Binding RestoreCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DataTemplate>
+
+    <!-- ───────── Déverrouillage ───────── -->
+    <DataTemplate DataType="{x:Type vm:UnlockViewModel}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="11*"/>
+                <ColumnDefinition Width="12*"/>
+            </Grid.ColumnDefinitions>
+            <Control Template="{StaticResource BrandPanel}" Focusable="False"/>
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Width="400" VerticalAlignment="Center" Margin="0,40">
+                    <Border Width="52" Height="52" CornerRadius="14" Background="{DynamicResource AccentSoft}" HorizontalAlignment="Left" Margin="0,0,0,18">
+                        <c:IconView Kind="lock" Width="24" Height="24" Foreground="{DynamicResource Accent}"/>
+                    </Border>
+                    <TextBlock Text="Coffre verrouillé" Style="{StaticResource Overline}"/>
+                    <TextBlock Text="{Binding VaultName}" Style="{StaticResource H1}" Margin="0,4,0,22"/>
+
+                    <ContentControl Focusable="False" Content="{Binding Error}" ContentTemplate="{StaticResource ErrorText}" Visibility="{Binding Error, Converter={StaticResource Vis}}"/>
+
+                    <!-- Mot de passe maître -->
+                    <StackPanel Visibility="{Binding IsRecoveryMode, Converter={StaticResource Vis}, ConverterParameter=!}">
+                        <TextBlock Text="Mot de passe maître" Style="{StaticResource FieldLabel}"/>
+                        <PasswordBox c:Assist.BindPassword="True" c:Assist.Password="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
+                                     c:Assist.FocusOnLoad="True" c:Assist.EnterCommand="{Binding UnlockCommand}" Height="40"/>
+                        <Button Style="{StaticResource Primary}" Height="40" Margin="0,16,0,0" Command="{Binding UnlockCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource Not}}">
+                            <StackPanel Orientation="Horizontal">
+                                <c:IconView Kind="unlock" Style="{StaticResource BtnIcon}"/>
+                                <TextBlock Text="Déverrouiller"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Récupération -->
+                    <StackPanel Visibility="{Binding IsRecoveryMode, Converter={StaticResource Vis}}">
+                        <TextBlock Style="{StaticResource Wrap}" Foreground="{DynamicResource TextMuted}" Margin="0,0,0,16"
+                                   Text="Saisissez votre clé de récupération puis choisissez un nouveau mot de passe maître. Une nouvelle clé de récupération vous sera remise."/>
+                        <TextBlock Text="Clé de récupération" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding RecoveryKey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MonoBox}" Tag="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
+                                 CharacterCasing="Upper"/>
+                        <TextBlock Text="Nouveau mot de passe maître" Style="{StaticResource FieldLabel}" Margin="0,14,0,5"/>
+                        <PasswordBox c:Assist.BindPassword="True" c:Assist.Password="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Confirmer" Style="{StaticResource FieldLabel}" Margin="0,14,0,5"/>
+                        <PasswordBox c:Assist.BindPassword="True" c:Assist.Password="{Binding Confirmation, UpdateSourceTrigger=PropertyChanged}"
+                                     c:Assist.EnterCommand="{Binding RecoverCommand}"/>
+                        <Button Style="{StaticResource Primary}" Height="40" Margin="0,18,0,0" Command="{Binding RecoverCommand}" Content="Récupérer le coffre"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource Not}}"/>
+                    </StackPanel>
+
+                    <ProgressBar IsIndeterminate="True" Margin="0,14,0,0" Visibility="{Binding IsBusy, Converter={StaticResource Vis}}"/>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,28,0,16"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource Link}" Command="{Binding ToggleRecoveryCommand}" Content="Mot de passe oublié ? Utiliser la clé de récupération"
+                                Visibility="{Binding IsRecoveryMode, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                        <Button Style="{StaticResource Link}" Command="{Binding ToggleRecoveryCommand}" Content="← Revenir au mot de passe maître"
+                                Visibility="{Binding IsRecoveryMode, Converter={StaticResource Vis}}"/>
+                    </StackPanel>
+                    <Button Style="{StaticResource Link}" Command="{Binding RestoreCommand}" Content="Restaurer une sauvegarde" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

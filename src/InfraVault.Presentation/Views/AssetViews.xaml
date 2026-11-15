@@ -1,0 +1,526 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:InfraVault.Presentation.Controls"
+                    xmlns:vm="clr-namespace:InfraVault.Presentation.ViewModels">
+
+    <!-- ───────── Liste des ressources ───────── -->
+    <DataTemplate DataType="{x:Type vm:AssetsViewModel}">
+        <Grid Margin="32,26,32,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Margin="0,0,0,18">
+                <StackPanel>
+                    <TextBlock Text="Inventaire" Style="{StaticResource Overline}"/>
+                    <TextBlock Text="Infrastructure" Style="{StaticResource H1}" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Button Style="{StaticResource Primary}" Command="{Binding NewCommand}" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                    <StackPanel Orientation="Horizontal">
+                        <c:IconView Kind="plus" Style="{StaticResource BtnIcon}"/>
+                        <TextBlock Text="Nouvelle ressource"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MaxWidth="320"/>
+                    <ColumnDefinition Width="230"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" Tag="Filtrer par nom, hostname, IP ou tag"/>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Types}" SelectedItem="{Binding SelectedType}" Margin="10,0,0,0"/>
+                <ComboBox Grid.Column="2" ItemsSource="{Binding Environments}" SelectedItem="{Binding SelectedEnvironment}" Margin="10,0,0,0"/>
+                <ComboBox Grid.Column="3" ItemsSource="{Binding Statuses}" SelectedItem="{Binding SelectedStatus}" Margin="10,0,0,0"/>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource Link}" Content="Effacer les filtres" Command="{Binding ClearFiltersCommand}" Margin="0,0,14,0"
+                            Visibility="{Binding HasFilter, Converter={StaticResource Vis}}"/>
+                    <TextBlock Text="{Binding CountText}" Style="{StaticResource Muted}"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="6" Margin="0,0,0,24">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Margin="12,8,22,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Ressource" Style="{StaticResource Overline}"/>
+                        <TextBlock Grid.Column="1" Text="Hostname" Style="{StaticResource Overline}"/>
+                        <TextBlock Grid.Column="2" Text="Adresse IP" Style="{StaticResource Overline}"/>
+                        <TextBlock Grid.Column="3" Text="Environnement" Style="{StaticResource Overline}"/>
+                        <TextBlock Grid.Column="4" Text="Statut" Style="{StaticResource Overline}"/>
+                    </Grid>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Items}" c:ItemClick.Command="{Binding OpenCommand}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="130"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:IconView Kind="{Binding Icon}" Tint="{Binding Color}" Width="18" Height="18" Margin="0,0,12,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding TypeName}" Style="{StaticResource Faint}"/>
+                                        </StackPanel>
+                                        <c:IconView Kind="globe" Width="13" Height="13" Foreground="{DynamicResource Danger}" Margin="9,0,0,0" ToolTip="Exposé sur Internet"
+                                                    Visibility="{Binding InternetExposed, Converter={StaticResource Vis}}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Hostname}" Style="{StaticResource Mono}" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding IpAddress}" Style="{StaticResource Mono}" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}"/>
+                                    <Border Grid.Column="3" Style="{StaticResource Pill}" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding Environment}" FontSize="12" Foreground="{DynamicResource TextMuted}"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{Binding Status, Converter={StaticResource State}, ConverterParameter=brush}"/>
+                                        <TextBlock Text="{Binding Status, Converter={StaticResource State}}" Foreground="{DynamicResource TextMuted}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource Vis}}">
+                        <c:IconView Kind="server" Width="34" Height="34" Foreground="{DynamicResource TextFaint}"/>
+                        <TextBlock Text="Aucune ressource ne correspond." FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                        <TextBlock Text="Modifiez les filtres ou créez une ressource." Style="{StaticResource Muted}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </DataTemplate>
+
+    <!-- ───────── Fiche d'une ressource ───────── -->
+    <DataTemplate DataType="{x:Type vm:AssetDetailsViewModel}">
+        <Grid Margin="32,22,32,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.RowSpan="3" Text="Cette ressource n'existe plus." Style="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Visibility="{Binding NotFound, Converter={StaticResource Vis}}"/>
+
+            <!-- Fil d'Ariane -->
+            <ItemsControl ItemsSource="{Binding Detail.Path}" Margin="0,0,0,10" Focusable="False">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource Link}" Content="{Binding Name}" Foreground="{DynamicResource TextMuted}" FontSize="12.5"
+                                    Command="{Binding DataContext.OpenAssetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                            <c:IconView Kind="chevron-right" Width="11" Height="11" Foreground="{DynamicResource TextFaint}" Margin="6,1,6,0"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- En-tête -->
+            <Grid Grid.Row="1" Margin="0,0,0,18" Visibility="{Binding Detail, Converter={StaticResource Vis}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Width="56" Height="56" CornerRadius="14" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                    <c:IconView Kind="{Binding Detail.Summary.Icon}" Tint="{Binding Detail.Summary.Color}" Width="28" Height="28"/>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="16,0,16,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Detail.Summary.Name}" Style="{StaticResource H1}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <Border Style="{StaticResource Pill}" Margin="0,0,8,0">
+                            <TextBlock Text="{Binding Detail.Summary.TypeName}" FontSize="12" Foreground="{DynamicResource TextMuted}"/>
+                        </Border>
+                        <Border Style="{StaticResource Pill}" Margin="0,0,8,0">
+                            <TextBlock Text="{Binding Detail.Summary.Environment}" FontSize="12" Foreground="{DynamicResource TextMuted}"/>
+                        </Border>
+                        <Border Style="{StaticResource Pill}" Margin="0,0,8,0" Background="{Binding Detail.Summary.Status, Converter={StaticResource State}, ConverterParameter=soft}">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="7" Height="7" Margin="0,0,6,0" Fill="{Binding Detail.Summary.Status, Converter={StaticResource State}, ConverterParameter=brush}"/>
+                                <TextBlock Text="{Binding Detail.Summary.Status, Converter={StaticResource State}}" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Pill}" Background="{DynamicResource DangerSoft}" Visibility="{Binding Detail.Summary.InternetExposed, Converter={StaticResource Vis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <c:IconView Kind="globe" Width="12" Height="12" Foreground="{DynamicResource Danger}" Margin="0,0,6,0"/>
+                                <TextBlock Text="Exposé sur Internet" FontSize="12" Foreground="{DynamicResource Danger}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding ShowTopologyCommand}" Margin="0,0,8,0" ToolTip="Cartographie de cette ressource et de ce qu'elle contient">
+                        <StackPanel Orientation="Horizontal">
+                            <c:IconView Kind="map" Style="{StaticResource BtnIcon}"/>
+                            <TextBlock Text="Cartographier"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding EditCommand}" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <c:IconView Kind="edit" Style="{StaticResource BtnIcon}"/>
+                            <TextBlock Text="Modifier"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" ToolTip="Supprimer">
+                        <c:IconView Kind="trash" Width="15" Height="15"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTab}" Visibility="{Binding Detail, Converter={StaticResource Vis}}">
+                <!-- Vue d'ensemble -->
+                <TabItem Header="Vue d'ensemble">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Grid Margin="0,0,0,24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,16,0">
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="Essentiel" Style="{StaticResource CardTitle}"/>
+                                        <ItemsControl ItemsSource="{Binding Facts}" Focusable="False">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <UniformGrid Columns="2"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,0,16,14">
+                                                        <TextBlock Text="{Binding Label}" Style="{StaticResource Faint}"/>
+                                                        <TextBlock Text="{Binding Value}" FontSize="14" Margin="0,2,0,0" ToolTip="{Binding Value}"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <StackPanel Visibility="{Binding Detail.Description, Converter={StaticResource Vis}}">
+                                            <Border Style="{StaticResource Divider}" Margin="0,2,0,12"/>
+                                            <TextBlock Text="Description" Style="{StaticResource Faint}"/>
+                                            <TextBlock Text="{Binding Detail.Description}" Style="{StaticResource Wrap}" Margin="0,3,0,0"/>
+                                        </StackPanel>
+                                        <ItemsControl ItemsSource="{Binding Tags}" ItemTemplate="{StaticResource TagChip}" ItemsPanel="{StaticResource WrapItems}" Margin="0,12,0,-6" Focusable="False"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource Card}" Margin="0,16,0,0" BorderBrush="{DynamicResource Danger}"
+                                        Visibility="{Binding Detail.Summary.InternetExposed, Converter={StaticResource Vis}}">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <c:IconView Kind="globe" Foreground="{DynamicResource Danger}" Margin="0,0,9,0"/>
+                                            <TextBlock Text="Exposition Internet" Style="{StaticResource CardTitle}" Margin="0"/>
+                                        </StackPanel>
+                                        <TextBlock Style="{StaticResource Muted}">
+                                            <Run Text="Adresse publique : "/><Run Text="{Binding Detail.Summary.PublicAddress, Mode=OneWay, TargetNullValue='non renseignée'}" FontFamily="{StaticResource Font.Mono}" Foreground="{DynamicResource Text}"/>
+                                        </TextBlock>
+                                        <ItemsControl ItemsSource="{Binding ExposedPorts}" ItemTemplate="{StaticResource PortChip}" ItemsPanel="{StaticResource WrapItems}" Margin="0,10,0,-6" Focusable="False"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,10">
+                                            <TextBlock Text="Contient / héberge" Style="{StaticResource CardTitle}" Margin="0"/>
+                                            <Button Style="{StaticResource Link}" Content="+ Ajouter" Command="{Binding AddChildCommand}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        </Grid>
+                                        <ItemsControl ItemsSource="{Binding Children}" Focusable="False">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Style="{StaticResource RowButton}" Margin="-10,0"
+                                                            Command="{Binding DataContext.OpenRelatedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                                        <ContentPresenter Content="{Binding Other}" ContentTemplate="{StaticResource AssetRow}"/>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Text="Rien n'est encore rattaché à cette ressource." Style="{StaticResource Muted}" TextWrapping="Wrap" TextTrimming="None"
+                                                   Visibility="{Binding Children.Count, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Margin="4,12,0,0" Style="{StaticResource Faint}">
+                                    <Run Text="Créée le "/><Run Text="{Binding Detail.CreatedAt, Mode=OneWay, Converter={StaticResource Date}}"/><Run Text=" · modifiée "/><Run Text="{Binding Detail.Summary.UpdatedAt, Mode=OneWay, Converter={StaticResource Date}, ConverterParameter=relative}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Propriétés -->
+                <TabItem Header="Propriétés">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,24" MaxWidth="900" HorizontalAlignment="Left">
+                            <ItemsControl ItemsSource="{Binding PropertyGroups}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Card}" Margin="0,0,0,14" MinWidth="700">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource CardTitle}"/>
+                                                <ItemsControl ItemsSource="{Binding Items}" Focusable="False">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Margin="0,5">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="230"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                                                                    <TextBlock Text="{Binding Label}" Style="{StaticResource Muted}"/>
+                                                                    <c:IconView Kind="lock" Width="12" Height="12" Foreground="{DynamicResource Accent}" Margin="7,0,0,0" ToolTip="Valeur chiffrée"
+                                                                                Visibility="{Binding IsSensitive, Converter={StaticResource Vis}}"/>
+                                                                </StackPanel>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Display}" Style="{StaticResource Wrap}" FontFamily="{StaticResource Font.Mono}" FontSize="12.5"/>
+                                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,-6,0,0">
+                                                                    <Button Style="{StaticResource IconButton}" ToolTip="Afficher / masquer" Visibility="{Binding IsSensitive, Converter={StaticResource Vis}}"
+                                                                            Command="{Binding DataContext.RevealPropertyCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding}">
+                                                                        <c:IconView Kind="eye" Width="15" Height="15"/>
+                                                                    </Button>
+                                                                    <Button Style="{StaticResource IconButton}" ToolTip="Copier" Visibility="{Binding IsSensitive, Converter={StaticResource Vis}, ConverterParameter=!}"
+                                                                            Command="{Binding DataContext.CopyValueCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding Display}">
+                                                                        <c:IconView Kind="copy" Width="15" Height="15"/>
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Visibility="{Binding PropertyGroups.Count, Converter={StaticResource Vis}, ConverterParameter=!}">
+                                <TextBlock Text="Aucune propriété n'est renseignée." Style="{StaticResource Muted}"/>
+                                <Button Style="{StaticResource Link}" Content="Compléter la fiche" Command="{Binding EditCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Identifiants -->
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock><Run Text="Identifiants"/><Run Text="{Binding CredentialItems.Count, Mode=OneWay, StringFormat='  {0}', TargetNullValue=''}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                    </TabItem.Header>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,24" MaxWidth="900" HorizontalAlignment="Left" MinWidth="700">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Button Command="{Binding NewCredentialCommand}" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:IconView Kind="plus" Style="{StaticResource BtnIcon}"/>
+                                        <TextBlock Text="Nouvel identifiant"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding LinkCredentialCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:IconView Kind="link" Style="{StaticResource BtnIcon}"/>
+                                        <TextBlock Text="Associer un identifiant existant"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding CredentialItems}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Card}" Padding="14,10" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <c:IconView Kind="{Binding Icon}" Foreground="{DynamicResource Accent}" Margin="0,0,13,0"/>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding TypeLabel}" Style="{StaticResource Faint}"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="2" Style="{StaticResource Pill}" Margin="0,0,12,0" Background="{Binding Expiry, Converter={StaticResource State}, ConverterParameter=soft}"
+                                                        Visibility="{Binding ExpiresAt, Converter={StaticResource Vis}}">
+                                                    <TextBlock Text="{Binding Expiry, Converter={StaticResource State}}" FontSize="11.5" Foreground="{Binding Expiry, Converter={StaticResource State}, ConverterParameter=brush}"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                                                    <Button Content="Ouvrir" Margin="0,0,6,0"
+                                                            Command="{Binding DataContext.OpenCredentialCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding}"/>
+                                                    <Button Style="{StaticResource IconButton}" ToolTip="Détacher de cette ressource"
+                                                            Command="{Binding DataContext.UnlinkCredentialCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding}">
+                                                        <c:IconView Kind="x" Width="14" Height="14"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Aucun identifiant n'est associé. Les secrets restent masqués tant que vous n'ouvrez pas leur fiche." Style="{StaticResource Muted}"
+                                       Visibility="{Binding CredentialItems.Count, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Relations -->
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock><Run Text="Relations"/><Run Text="{Binding Relationships.Count, Mode=OneWay, StringFormat='  {0}', TargetNullValue=''}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                    </TabItem.Header>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,24" MaxWidth="900" HorizontalAlignment="Left" MinWidth="700">
+                            <Button Command="{Binding AddRelationshipCommand}" HorizontalAlignment="Left" Margin="0,0,0,12">
+                                <StackPanel Orientation="Horizontal">
+                                    <c:IconView Kind="plus" Style="{StaticResource BtnIcon}"/>
+                                    <TextBlock Text="Nouvelle relation ou flux"/>
+                                </StackPanel>
+                            </Button>
+                            <ItemsControl ItemsSource="{Binding Relationships}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Card}" Padding="14,10" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="170"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <c:IconView Kind="arrow-right" Width="15" Height="15" Foreground="{DynamicResource Teal}" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="{Binding Label}" Foreground="{DynamicResource TextMuted}"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1">
+                                                    <Button Style="{StaticResource Link}" Content="{Binding Other.Name}" FontSize="13.5" Foreground="{DynamicResource Text}" HorizontalAlignment="Left"
+                                                            Command="{Binding DataContext.OpenRelatedCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding}"/>
+                                                    <TextBlock Style="{StaticResource Faint}">
+                                                        <Run Text="{Binding Other.TypeName, Mode=OneWay}"/><Run Text="{Binding Description, Mode=OneWay, StringFormat=' · {0}', TargetNullValue=''}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <Border Grid.Column="2" CornerRadius="6" Padding="8,3" Margin="0,0,10,0" Background="{DynamicResource TealSoft}" VerticalAlignment="Center"
+                                                        Visibility="{Binding Ports, Converter={StaticResource Vis}}">
+                                                    <TextBlock Text="{Binding Ports}" Style="{StaticResource Mono}" Foreground="{DynamicResource Teal}"/>
+                                                </Border>
+                                                <Button Grid.Column="3" Style="{StaticResource IconButton}" ToolTip="Supprimer la relation"
+                                                        Command="{Binding DataContext.RemoveRelationshipCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding}">
+                                                    <c:IconView Kind="trash" Width="14" Height="14"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" TextTrimming="None"
+                                       Text="Aucune relation. Ajoutez par exemple « utilise » vers une base de données, avec le port emprunté : la cartographie s'en servira."
+                                       Visibility="{Binding Relationships.Count, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Documentation -->
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock><Run Text="Documentation"/><Run Text="{Binding Documents.Count, Mode=OneWay, StringFormat='  {0}', TargetNullValue=''}" Foreground="{DynamicResource TextFaint}"/></TextBlock>
+                    </TabItem.Header>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,0,24" MaxWidth="900" HorizontalAlignment="Left" MinWidth="700">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <Button Command="{Binding NewDocumentCommand}" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:IconView Kind="plus" Style="{StaticResource BtnIcon}"/>
+                                        <TextBlock Text="Nouvelle note"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding LinkDocumentCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:IconView Kind="link" Style="{StaticResource BtnIcon}"/>
+                                        <TextBlock Text="Associer un document existant"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding Documents}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Card}" Padding="14,10" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <c:IconView Kind="file" Foreground="{DynamicResource Teal}" Margin="0,0,13,0"/>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                                    <TextBlock Style="{StaticResource Faint}">
+                                                        <Run Text="{Binding DocumentType, Mode=OneWay}"/><Run Text=" · modifié "/><Run Text="{Binding UpdatedAt, Mode=OneWay, Converter={StaticResource Date}, ConverterParameter=relative}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                    <Button Content="Ouvrir" Margin="0,0,6,0"
+                                                            Command="{Binding DataContext.OpenDocumentCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding}"/>
+                                                    <Button Style="{StaticResource IconButton}" ToolTip="Détacher de cette ressource"
+                                                            Command="{Binding DataContext.UnlinkDocumentCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" CommandParameter="{Binding}">
+                                                        <c:IconView Kind="x" Width="14" Height="14"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Aucune documentation n'est associée à cette ressource." Style="{StaticResource Muted}"
+                                       Visibility="{Binding Documents.Count, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Historique -->
+                <TabItem Header="Historique">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,24" MaxWidth="900" HorizontalAlignment="Left" MinWidth="700" VerticalAlignment="Top">
+                            <ItemsControl ItemsSource="{Binding History}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="220"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Ellipse Width="7" Height="7" Margin="0,0,11,0" Fill="{Binding Success, Converter={StaticResource State}, ConverterParameter=brush}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding EventLabel}" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Detail}" Style="{StaticResource Muted}"/>
+                                            <TextBlock Grid.Column="3" Style="{StaticResource Faint}">
+                                                <Run Text="{Binding UserName, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding TimestampUtc, Mode=OneWay, Converter={StaticResource Date}}"/>
+                                            </TextBlock>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

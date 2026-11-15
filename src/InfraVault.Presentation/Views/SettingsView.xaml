@@ -1,0 +1,293 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:InfraVault.Presentation.Controls"
+                    xmlns:vm="clr-namespace:InfraVault.Presentation.ViewModels">
+
+    <Style x:Key="SettingRow" TargetType="Grid">
+        <Setter Property="Margin" Value="0,7"/>
+    </Style>
+    <Style x:Key="NumberBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="Width" Value="84"/>
+        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}"/>
+    </Style>
+
+    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+        <Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="32,26,32,90" Width="900" HorizontalAlignment="Left">
+                    <TextBlock Text="Administration" Style="{StaticResource Overline}"/>
+                    <TextBlock Text="Paramètres" Style="{StaticResource H1}" Margin="0,3,0,20"/>
+
+                    <!-- Coffre -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Coffre" Style="{StaticResource CardTitle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding VaultName}" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock Style="{StaticResource Faint}" Margin="0,3,0,0">
+                                        <Run Text="Créé le "/><Run Text="{Binding Info.CreatedAt, Mode=OneWay, Converter={StaticResource Date}, ConverterParameter=date}"/><Run Text=" · "/><Run Text="{Binding KdfText, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Renommer" Command="{Binding RenameVaultCommand}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Border Style="{StaticResource Divider}" Margin="0,14"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Mot de passe maître"/>
+                                    <TextBlock Style="{StaticResource Faint}" TextWrapping="Wrap" TextTrimming="None"
+                                               Text="Le changer ne rechiffre pas vos secrets : seule l'enveloppe de la clé de données est renouvelée."/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Changer le mot de passe" Command="{Binding ChangePasswordCommand}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid Margin="0,14,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Clé de récupération"/>
+                                    <TextBlock Style="{StaticResource Faint}">
+                                        <Run Text="Générée le "/><Run Text="{Binding Info.RecoveryCreatedAt, Mode=OneWay, Converter={StaticResource Date}, ConverterParameter=date}"/><Run Text=" · à conserver hors de ce poste."/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Générer une nouvelle clé" Command="{Binding RegenerateRecoveryKeyCommand}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Verrouillage -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Politique de verrouillage" Style="{StaticResource CardTitle}"/>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <StackPanel HorizontalAlignment="Left">
+                                    <TextBlock Text="Verrouillage automatique après inactivité"/>
+                                    <TextBlock Text="En minutes. 0 désactive le verrouillage automatique (déconseillé)." Style="{StaticResource Faint}"/>
+                                </StackPanel>
+                                <TextBox Text="{Binding AutoLockMinutes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumberBox}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding LockOnSuspend}" Margin="0,7" Content="Verrouiller à la mise en veille de Windows"/>
+                            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding LockOnSessionLock}" Margin="0,7" Content="Verrouiller quand la session Windows est verrouillée (Win+L)"/>
+                            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding LockOnMinimize}" Margin="0,7" Content="Verrouiller quand la fenêtre est réduite"/>
+                            <TextBlock Style="{StaticResource Faint}" Margin="0,6,0,0" Text="La fermeture de l'application verrouille toujours le coffre. Le déverrouillage par Windows Hello est prévu dans une version ultérieure."
+                                       TextWrapping="Wrap" TextTrimming="None"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Secrets -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Secrets et presse-papiers" Style="{StaticResource CardTitle}"/>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <StackPanel HorizontalAlignment="Left">
+                                    <TextBlock Text="Durée d'affichage d'un secret"/>
+                                    <TextBlock Text="En secondes, avant qu'il ne soit masqué à nouveau." Style="{StaticResource Faint}"/>
+                                </StackPanel>
+                                <TextBox Text="{Binding SecretRevealSeconds, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumberBox}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <StackPanel HorizontalAlignment="Left">
+                                    <TextBlock Text="Vidage du presse-papiers"/>
+                                    <TextBlock Text="En secondes, après la copie d'un secret." Style="{StaticResource Faint}"/>
+                                </StackPanel>
+                                <TextBox Text="{Binding ClipboardClearSeconds, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumberBox}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Border Style="{StaticResource WarnBanner}" Margin="0,10,0,0">
+                                <TextBlock Style="{StaticResource Wrap}"
+                                           Text="InfraVault demande à Windows de ne pas conserver les secrets copiés dans l'historique du presse-papiers (Win+V) ni de les synchroniser. Un gestionnaire de presse-papiers tiers peut ignorer cette demande et en garder une copie."/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Sauvegarde -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Sauvegarde automatique" Style="{StaticResource CardTitle}"/>
+                            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding AutoBackupEnabled}" Margin="0,7" Content="Sauvegarder automatiquement le coffre (archive chiffrée)"/>
+                            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AutoBackupEnabled}">
+                                <TextBlock Text="Intervalle entre deux sauvegardes (heures)" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding AutoBackupIntervalHours, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumberBox}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AutoBackupEnabled}">
+                                <TextBlock Text="Nombre de sauvegardes automatiques conservées" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding BackupRetention, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource NumberBox}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <TextBlock Text="Dossier des sauvegardes" Style="{StaticResource FieldLabel}" Margin="0,10,0,5"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{Binding BackupDirectory, UpdateSourceTrigger=PropertyChanged}" Tag="Dossier par défaut, à côté du coffre" Style="{StaticResource MonoBox}"/>
+                                <Button Grid.Column="1" Content="Parcourir…" Command="{Binding PickBackupDirectoryCommand}" Margin="8,0,0,0"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Environnements -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Environnements" Style="{StaticResource CardTitle}"/>
+                            <TextBox Text="{Binding Environments, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Liste séparée par des virgules, proposée lors de la création d'une ressource." Style="{StaticResource Faint}" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Catégories -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Catégories de ressources" Style="{StaticResource CardTitle}" Margin="0"/>
+                                    <TextBlock Text="Ajoutez vos propres catégories et leurs champs, sans toucher au reste du système." Style="{StaticResource Faint}"/>
+                                </StackPanel>
+                                <Button HorizontalAlignment="Right" VerticalAlignment="Center" Command="{Binding EditTypeCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:IconView Kind="plus" Style="{StaticResource BtnIcon}"/>
+                                        <TextBlock Text="Nouvelle catégorie"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding Types}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="30"/>
+                                                <ColumnDefinition Width="230"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <c:IconView Kind="{Binding Icon}" Tint="{Binding Color}" HorizontalAlignment="Left"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Column="2" Style="{StaticResource Faint}" VerticalAlignment="Center">
+                                                <Run Text="{Binding Fields.Count, Mode=OneWay}"/><Run Text=" champs · "/><Run Text="{Binding AssetCount, Mode=OneWay}"/><Run Text=" ressources"/>
+                                            </TextBlock>
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                                                <Border Style="{StaticResource Pill}" Margin="0,0,8,0" Visibility="{Binding IsSystem, Converter={StaticResource Vis}}">
+                                                    <TextBlock Text="Système" FontSize="11.5" Foreground="{DynamicResource TextMuted}"/>
+                                                </Border>
+                                                <Button Style="{StaticResource IconButton}" ToolTip="Modifier"
+                                                        Command="{Binding DataContext.EditTypeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                                    <c:IconView Kind="edit" Width="14" Height="14"/>
+                                                </Button>
+                                                <Button Style="{StaticResource IconButton}" ToolTip="Supprimer" Visibility="{Binding IsSystem, Converter={StaticResource Vis}, ConverterParameter=!}"
+                                                        Command="{Binding DataContext.DeleteTypeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                                    <c:IconView Kind="trash" Width="14" Height="14"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tags -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Tags" Style="{StaticResource CardTitle}"/>
+                            <ItemsControl ItemsSource="{Binding Tags}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="260"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal">
+                                                <c:IconView Kind="tag" Width="13" Height="13" Foreground="{DynamicResource TextFaint}" Margin="0,0,8,0"/>
+                                                <TextBlock Text="{Binding Tag}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Style="{StaticResource Faint}" VerticalAlignment="Center">
+                                                <Run Text="{Binding Assets, Mode=OneWay}"/><Run Text=" ressources · "/><Run Text="{Binding Credentials, Mode=OneWay}"/><Run Text=" identifiants · "/><Run Text="{Binding Documents, Mode=OneWay}"/><Run Text=" documents"/>
+                                            </TextBlock>
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                <Button Style="{StaticResource Ghost}" Content="Renommer" MinHeight="26"
+                                                        Command="{Binding DataContext.RenameTagCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                                <Button Style="{StaticResource Ghost}" Content="Retirer" MinHeight="26"
+                                                        Command="{Binding DataContext.DeleteTagCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Aucun tag n'est encore utilisé." Style="{StaticResource Muted}" Visibility="{Binding Tags.Count, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Affichage & maintenance -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Affichage et maintenance" Style="{StaticResource CardTitle}"/>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <TextBlock Text="Thème de l'interface" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Command="{Binding ToggleThemeCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <c:IconView Kind="sun" Style="{StaticResource BtnIcon}"/>
+                                            <TextBlock Text="Basculer clair / sombre"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <StackPanel HorizontalAlignment="Left">
+                                    <TextBlock Text="Index de recherche"/>
+                                    <TextBlock Text="Ne contient que des métadonnées. À reconstruire si un résultat semble manquer." Style="{StaticResource Faint}"/>
+                                </StackPanel>
+                                <Button Content="Reconstruire" Command="{Binding RebuildIndexCommand}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <StackPanel HorizontalAlignment="Left">
+                                    <TextBlock Text="Dossier de données"/>
+                                    <TextBlock Text="{Binding DataDirectory}" Style="{StaticResource Mono}" Foreground="{DynamicResource TextMuted}" FontSize="12" MaxWidth="620"/>
+                                </StackPanel>
+                                <Button Content="Ouvrir" Command="{Binding OpenDataDirectoryCommand}" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Extensions -->
+                    <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Évolutions prévues" Style="{StaticResource CardTitle}"/>
+                            <TextBlock Style="{StaticResource Wrap}" Foreground="{DynamicResource TextMuted}"
+                                       Text="InfraVault Desktop fonctionne aujourd'hui pour un utilisateur, en local. Le modèle de données prépare InfraVault Team (utilisateurs, rôles, partage) puis InfraVault Server (synchronisation, audit centralisé). Ces modes ne sont pas encore disponibles."/>
+                            <TextBlock Style="{StaticResource Faint}" Margin="0,8,0,0">
+                                <Run Text="InfraVault "/><Run Text="{Binding Version, Mode=OneWay}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Barre d'enregistrement -->
+            <Border VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="32,0,0,22" Width="900" Padding="16,11" CornerRadius="10"
+                    Background="{DynamicResource SurfaceAlt}" BorderBrush="{DynamicResource Accent}" BorderThickness="1"
+                    Visibility="{Binding IsDirty, Converter={StaticResource Vis}}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.3" Color="Black"/>
+                </Border.Effect>
+                <Grid>
+                    <TextBlock Text="Des paramètres ont été modifiés." VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Annuler" Command="{Binding ResetCommand}" Margin="0,0,8,0"/>
+                        <Button Style="{StaticResource Primary}" Content="Enregistrer" Command="{Binding SaveCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

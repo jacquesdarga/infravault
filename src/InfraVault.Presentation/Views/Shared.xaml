@@ -1,0 +1,111 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:InfraVault.Presentation.Controls"
+                    xmlns:dto="clr-namespace:InfraVault.Application.DTOs;assembly=InfraVault.Application">
+
+    <!-- Pastille d'icône colorée -->
+    <DataTemplate x:Key="IconBadge">
+        <Border Width="34" Height="34" CornerRadius="9" Background="{DynamicResource SurfaceAlt}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+            <c:IconView Kind="{Binding Icon}" Tint="{Binding Color}" Width="18" Height="18"/>
+        </Border>
+    </DataTemplate>
+
+    <!-- Ressource : icône + nom + hostname / IP -->
+    <DataTemplate x:Key="AssetRow" DataType="{x:Type dto:AssetSummaryDto}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource IconBadge}"/>
+            <StackPanel Grid.Column="1" Margin="11,0,8,0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                <TextBlock Style="{StaticResource Faint}">
+                    <Run Text="{Binding TypeName, Mode=OneWay}"/><Run Text="{Binding IpAddress, Mode=OneWay, StringFormat=' · {0}', TargetNullValue=''}" FontFamily="{StaticResource Font.Mono}"/>
+                </TextBlock>
+            </StackPanel>
+            <Ellipse Grid.Column="2" Width="8" Height="8" VerticalAlignment="Center" Fill="{Binding Status, Converter={StaticResource State}, ConverterParameter=brush}"
+                     ToolTip="{Binding Status, Converter={StaticResource State}}"/>
+        </Grid>
+    </DataTemplate>
+
+    <!-- Tag -->
+    <DataTemplate x:Key="TagChip">
+        <Border Style="{StaticResource Pill}" Margin="0,0,6,6" Padding="8,3">
+            <StackPanel Orientation="Horizontal">
+                <c:IconView Kind="tag" Width="11" Height="11" Foreground="{DynamicResource TextFaint}" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding}" FontSize="12" Foreground="{DynamicResource TextMuted}"/>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <ItemsPanelTemplate x:Key="WrapItems">
+        <WrapPanel/>
+    </ItemsPanelTemplate>
+
+    <!-- Port réseau -->
+    <DataTemplate x:Key="PortChip">
+        <Border CornerRadius="6" Padding="7,2" Margin="0,0,6,6" Background="{DynamicResource TealSoft}">
+            <TextBlock Text="{Binding}" Style="{StaticResource Mono}" Foreground="{DynamicResource Teal}" FontSize="12"/>
+        </Border>
+    </DataTemplate>
+
+    <!-- Événement d'audit compact -->
+    <DataTemplate x:Key="AuditRow" DataType="{x:Type dto:AuditEventDto}">
+        <Grid Margin="0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Ellipse Width="7" Height="7" VerticalAlignment="Center" Margin="0,0,10,0"
+                     Fill="{Binding Success, Converter={StaticResource State}, ConverterParameter=brush}"/>
+            <TextBlock Grid.Column="1">
+                <Run Text="{Binding EventLabel, Mode=OneWay}" FontWeight="SemiBold"/><Run Text="{Binding Label, Mode=OneWay, StringFormat='  {0}', TargetNullValue=''}" Foreground="{DynamicResource TextMuted}"/>
+            </TextBlock>
+            <TextBlock Grid.Column="2" Text="{Binding TimestampUtc, Converter={StaticResource Date}, ConverterParameter=relative}" Style="{StaticResource Faint}" Margin="10,0,0,0"/>
+        </Grid>
+    </DataTemplate>
+
+    <!-- En-tête de section dans une carte -->
+    <Style x:Key="CardTitle" TargetType="TextBlock" BasedOn="{StaticResource H2}">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="Margin" Value="0,0,0,12"/>
+    </Style>
+
+    <!-- Bandeau d'information -->
+    <Style x:Key="Banner" TargetType="Border">
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12,9"/>
+        <Setter Property="Background" Value="{DynamicResource AccentSoft}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style x:Key="ErrorBanner" TargetType="Border" BasedOn="{StaticResource Banner}">
+        <Setter Property="Background" Value="{DynamicResource DangerSoft}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Danger}"/>
+    </Style>
+    <Style x:Key="WarnBanner" TargetType="Border" BasedOn="{StaticResource Banner}">
+        <Setter Property="Background" Value="{DynamicResource WarningSoft}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Warning}"/>
+    </Style>
+
+    <!-- Message d'erreur d'un dialogue ou d'un écran d'entrée -->
+    <DataTemplate x:Key="ErrorText">
+        <Border Style="{StaticResource ErrorBanner}" Margin="0,0,0,14">
+            <StackPanel Orientation="Horizontal">
+                <c:IconView Kind="alert" Width="16" Height="16" Foreground="{DynamicResource Danger}" Margin="0,1,9,0" VerticalAlignment="Top"/>
+                <TextBlock Text="{Binding}" Style="{StaticResource Wrap}" MaxWidth="600"/>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+    <!-- Bouton avec icône : contenu standard -->
+    <Style x:Key="BtnIcon" TargetType="c:IconView" BasedOn="{StaticResource {x:Type c:IconView}}">
+        <Setter Property="Width" Value="15"/>
+        <Setter Property="Height" Value="15"/>
+        <Setter Property="Margin" Value="0,0,7,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+</ResourceDictionary>

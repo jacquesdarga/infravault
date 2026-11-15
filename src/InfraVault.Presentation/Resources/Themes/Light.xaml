@@ -1,0 +1,48 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Thème clair « Papier & terre cuite » : fonds papier chaud, encre vert sombre, accent terre cuite. -->
+    <Color x:Key="C.Bg">#F4EEE3</Color>
+    <Color x:Key="C.Caption">#F4EEE3</Color>
+
+    <SolidColorBrush x:Key="Bg" Color="#F4EEE3"/>
+    <SolidColorBrush x:Key="BgDeep" Color="#EAE2D3"/>
+    <SolidColorBrush x:Key="Surface" Color="#FFFCF6"/>
+    <SolidColorBrush x:Key="SurfaceAlt" Color="#F1EADC"/>
+    <SolidColorBrush x:Key="SurfaceHover" Color="#EAE1D0"/>
+    <SolidColorBrush x:Key="Line" Color="#DED5C3"/>
+    <SolidColorBrush x:Key="LineStrong" Color="#C6BBA5"/>
+    <SolidColorBrush x:Key="Text" Color="#1D2925"/>
+    <SolidColorBrush x:Key="TextMuted" Color="#5F6C66"/>
+    <SolidColorBrush x:Key="TextFaint" Color="#8D968F"/>
+    <SolidColorBrush x:Key="Accent" Color="#B5521D"/>
+    <SolidColorBrush x:Key="AccentHover" Color="#9C4315"/>
+    <SolidColorBrush x:Key="AccentText" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="#1FB5521D"/>
+    <SolidColorBrush x:Key="Teal" Color="#1C8271"/>
+    <SolidColorBrush x:Key="TealSoft" Color="#1F1C8271"/>
+    <SolidColorBrush x:Key="Danger" Color="#C23B2A"/>
+    <SolidColorBrush x:Key="DangerSoft" Color="#1FC23B2A"/>
+    <SolidColorBrush x:Key="Success" Color="#2E8B45"/>
+    <SolidColorBrush x:Key="SuccessSoft" Color="#1F2E8B45"/>
+    <SolidColorBrush x:Key="Warning" Color="#C26A12"/>
+    <SolidColorBrush x:Key="WarningSoft" Color="#24C26A12"/>
+    <SolidColorBrush x:Key="Overlay" Color="#8C2A241A"/>
+    <SolidColorBrush x:Key="CodeBg" Color="#F0E9DA"/>
+    <SolidColorBrush x:Key="Selection" Color="#55B5521D"/>
+    <SolidColorBrush x:Key="Shadow" Color="#5A4A30"/>
+
+    <SolidColorBrush x:Key="Syn.Keyword" Color="#B5521D"/>
+    <SolidColorBrush x:Key="Syn.String" Color="#2E7D43"/>
+    <SolidColorBrush x:Key="Syn.Comment" Color="#8D968F"/>
+    <SolidColorBrush x:Key="Syn.Number" Color="#2467A8"/>
+    <SolidColorBrush x:Key="Syn.Key" Color="#1C8271"/>
+
+    <SolidColorBrush x:Key="Asset.amber" Color="#C4801A"/>
+    <SolidColorBrush x:Key="Asset.teal" Color="#1C8271"/>
+    <SolidColorBrush x:Key="Asset.coral" Color="#CF5631"/>
+    <SolidColorBrush x:Key="Asset.sky" Color="#2D7CC0"/>
+    <SolidColorBrush x:Key="Asset.violet" Color="#7658CC"/>
+    <SolidColorBrush x:Key="Asset.lime" Color="#6C9A1C"/>
+    <SolidColorBrush x:Key="Asset.rose" Color="#C8477C"/>
+    <SolidColorBrush x:Key="Asset.slate" Color="#66757A"/>
+</ResourceDictionary>

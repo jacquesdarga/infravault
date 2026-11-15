@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MsExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MsExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="$(MsExtensionsVersion)" />
+    <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="$(Argon2Version)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InfraVault.Application\InfraVault.Application.csproj" />
+    <ProjectReference Include="..\InfraVault.Domain\InfraVault.Domain.csproj" />
+    <ProjectReference Include="..\InfraVault.Shared\InfraVault.Shared.csproj" />
+  </ItemGroup>
+</Project>

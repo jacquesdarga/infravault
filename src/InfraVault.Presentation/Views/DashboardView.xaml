@@ -1,0 +1,228 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:InfraVault.Presentation.Controls"
+                    xmlns:vm="clr-namespace:InfraVault.Presentation.ViewModels">
+
+    <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="32,26,32,32" MaxWidth="1320">
+                <!-- En-tête -->
+                <Grid Margin="0,0,0,22">
+                    <StackPanel>
+                        <TextBlock Text="Tableau de bord" Style="{StaticResource Overline}"/>
+                        <TextBlock Style="{StaticResource H1}" Margin="0,3,0,0">
+                            <Run Text="{Binding Greeting, Mode=OneWay}"/><Run Text=", voici l'état de votre infrastructure"/>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                        <Button Command="{Binding GoTopologyCommand}" Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <c:IconView Kind="map" Style="{StaticResource BtnIcon}"/>
+                                <TextBlock Text="Cartographie"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource Primary}" Command="{Binding NewAssetCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <c:IconView Kind="plus" Style="{StaticResource BtnIcon}"/>
+                                <TextBlock Text="Nouvelle ressource"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Coffre vide -->
+                <Border Style="{StaticResource Banner}" Margin="0,0,0,18" Padding="18,14" Visibility="{Binding IsEmpty, Converter={StaticResource Vis}}">
+                    <StackPanel>
+                        <TextBlock Text="Votre coffre est prêt, il ne contient encore rien." FontWeight="SemiBold" FontSize="14"/>
+                        <TextBlock Style="{StaticResource Wrap}" Foreground="{DynamicResource TextMuted}" Margin="0,4,0,0"
+                                   Text="Commencez par un datacenter ou un serveur, rattachez-y vos machines virtuelles et vos applications, puis associez les identifiants qui permettent de les administrer."/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Compteurs -->
+                <ItemsControl ItemsSource="{Binding Tiles}" Focusable="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource RowButton}" Padding="0" Margin="0,0,12,0"
+                                    Command="{Binding DataContext.OpenTileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                <Border Style="{StaticResource Card}" Padding="16,14">
+                                    <StackPanel>
+                                        <Grid>
+                                            <TextBlock Text="{Binding Label}" Style="{StaticResource Muted}" FontSize="12.5" Margin="0,0,24,0"/>
+                                            <c:IconView Kind="{Binding Icon}" Tint="{Binding Color}" Width="17" Height="17" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding Value}" FontFamily="{StaticResource Font.Display}" FontSize="34" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Grid Margin="0,18,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5*"/>
+                        <ColumnDefinition Width="4*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Colonne gauche -->
+                    <StackPanel Margin="0,0,16,0">
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Ressources récemment modifiées" Style="{StaticResource CardTitle}"/>
+                                <ItemsControl ItemsSource="{Binding Data.RecentAssets}" Focusable="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource RowButton}" Margin="-10,0"
+                                                    Command="{Binding DataContext.OpenAssetCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource AssetRow}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding UpdatedAt, Converter={StaticResource Date}, ConverterParameter=relative}"
+                                                               Style="{StaticResource Faint}" VerticalAlignment="Center" Margin="14,0,0,0"/>
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="Aucune ressource pour l'instant." Style="{StaticResource Muted}"
+                                           Visibility="{Binding Data.RecentAssets.Count, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Répartition par catégorie" Style="{StaticResource CardTitle}"/>
+                                <ItemsControl ItemsSource="{Binding TypeBars}" Focusable="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource RowButton}" Margin="-10,0" Padding="10,6"
+                                                    Command="{Binding DataContext.OpenTypeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="26"/>
+                                                        <ColumnDefinition Width="170"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="36"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <c:IconView Kind="{Binding Type.Icon}" Tint="{Binding Type.Color}" Width="16" Height="16" HorizontalAlignment="Left"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Type.TypeName}" VerticalAlignment="Center"/>
+                                                    <Grid Grid.Column="2" VerticalAlignment="Center" Height="8">
+                                                        <Border CornerRadius="4" Background="{DynamicResource SurfaceAlt}"/>
+                                                        <Border CornerRadius="4" HorizontalAlignment="Left" c:Tinted.Background="{Binding Type.Color}"
+                                                                Width="{Binding Ratio, Converter={StaticResource Scale}, ConverterParameter=260}" MaxWidth="260"/>
+                                                    </Grid>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Type.Count}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                               FontFamily="{StaticResource Font.Mono}" Foreground="{DynamicResource TextMuted}"/>
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="Les catégories apparaîtront dès la première ressource." Style="{StaticResource Muted}"
+                                           Visibility="{Binding TypeBars.Count, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+
+                                <ItemsControl ItemsSource="{Binding EnvBars}" Margin="0,14,0,0" ItemsPanel="{StaticResource WrapItems}" Focusable="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource Pill}" Margin="0,0,8,0" Padding="10,4">
+                                                <TextBlock FontSize="12">
+                                                    <Run Text="{Binding Name, Mode=OneWay}" Foreground="{DynamicResource TextMuted}"/><Run Text="{Binding Count, Mode=OneWay, StringFormat='  {0}', TargetNullValue=''}" FontWeight="SemiBold"/>
+                                                </TextBlock>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Colonne droite -->
+                    <StackPanel Grid.Column="1">
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Identifiants à surveiller" Style="{StaticResource CardTitle}"/>
+                                <ItemsControl ItemsSource="{Binding Data.ExpiringCredentials}" Focusable="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource RowButton}" Margin="-10,0"
+                                                    Command="{Binding DataContext.OpenCredentialCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <c:IconView Kind="{Binding Icon}" Foreground="{DynamicResource TextMuted}" Width="16" Height="16" Margin="0,0,11,0"/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding ExpiresAt, Converter={StaticResource Date}, ConverterParameter=date}" Style="{StaticResource Faint}"/>
+                                                    </StackPanel>
+                                                    <Border Grid.Column="2" Style="{StaticResource Pill}" Background="{Binding Expiry, Converter={StaticResource State}, ConverterParameter=soft}">
+                                                        <TextBlock Text="{Binding Expiry, Converter={StaticResource State}}" FontSize="11.5" FontWeight="SemiBold"
+                                                                   Foreground="{Binding Expiry, Converter={StaticResource State}, ConverterParameter=brush}"/>
+                                                    </Border>
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding Data.ExpiringCredentials.Count, Converter={StaticResource Vis}, ConverterParameter=!}">
+                                    <c:IconView Kind="check" Foreground="{DynamicResource Success}" Width="15" Height="15" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Aucun identifiant n'expire dans les 30 jours." Style="{StaticResource Muted}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Dernière sauvegarde" Style="{StaticResource CardTitle}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding Data.LastBackupUtc, Converter={StaticResource Date}}" FontSize="15" FontWeight="SemiBold"
+                                               Visibility="{Binding Data.LastBackupUtc, Converter={StaticResource Vis}}"/>
+                                    <TextBlock Text="Aucune sauvegarde n'a encore été faite." Style="{StaticResource Muted}"
+                                               Visibility="{Binding Data.LastBackupUtc, Converter={StaticResource Vis}, ConverterParameter=!}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0" Visibility="{Binding Data.BackupOverdue, Converter={StaticResource Vis}}">
+                                        <c:IconView Kind="alert" Width="14" Height="14" Foreground="{DynamicResource Warning}" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Une sauvegarde est recommandée." Foreground="{DynamicResource Warning}" FontSize="12"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <Button Command="{Binding BackupNowCommand}" IsEnabled="{Binding IsBusy, Converter={StaticResource Not}}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <c:IconView Kind="archive" Style="{StaticResource BtnIcon}"/>
+                                            <TextBlock Text="Sauvegarder"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource Link}" Content="Gérer" Command="{Binding GoBackupsCommand}" HorizontalAlignment="Right" Margin="0,8,2,0" FontSize="12"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="Événements récents" Style="{StaticResource CardTitle}" Margin="0"/>
+                                    <Button Style="{StaticResource Link}" Content="Tout le journal" Command="{Binding GoAuditCommand}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12"/>
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding Data.RecentEvents}" ItemTemplate="{StaticResource AuditRow}" Focusable="False"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </DataTemplate>
+</ResourceDictionary>
