@@ -78,18 +78,92 @@ Ces points sont des limites assumées du modèle de menace, documentées dans
 
 ## Limites connues
 
-À lire avant de déployer InfraVault sur quoi que ce soit d'important :
+À lire avant de confier à InfraVault les accès d'une infrastructure de production. Ces limites sont
+vérifiables dans le code ; elles sont listées ici pour que personne n'ait à les découvrir.
 
-- **Le code n'a fait l'objet d'aucun audit de sécurité externe.** La conception cryptographique est
-  documentée et couverte par des tests, mais personne d'indépendant ne l'a revue. Si vous avez les
-  compétences pour le faire, c'est la contribution la plus utile que vous puissiez apporter.
-- **La DEK vit dans le tas managé** pendant que le coffre est ouvert. Elle est effacée au
-  verrouillage, mais .NET ne garantit pas qu'aucune copie ne subsiste après un déplacement par le
-  ramasse-miettes.
-- **Pas de migrations de schéma.** Un correctif qui imposerait un changement de schéma ne pourra
-  pas être appliqué à un coffre existant sans qu'un mécanisme de migration soit écrit d'abord.
-- **Pas de mode équipe.** Poser `vault.db` sur un partage réseau n'est pas une façon supportée de
-  partager un coffre et n'offre aucune des garanties décrites ici.
+### Le vol du fichier révèle l'inventaire, pas les secrets
+
+Sont **chiffrés** : nom d'utilisateur, secret et notes d'un identifiant, propriétés marquées
+sensibles, contenu des documents, pièces jointes (nom et contenu).
+
+Restent **en clair** dans `vault.db` : noms de ressources, hostnames, adresses IP, adresse publique
+et ports exposés, environnement, tags, URL et port des identifiants, titres, types et tags des
+documents, propriétés non sensibles, et l'index de recherche.
+
+C'est un compromis assumé — ce sont les clés de recherche — mais il a une conséquence : quelqu'un
+qui vole `vault.db` obtient **la cartographie de votre infrastructure** sans connaître aucun mot de
+passe. Si la topologie elle-même est sensible, traitez le fichier comme confidentiel.
+
+### Mémoire
+
+La DEK et ses deux sous-clés sont détenues dans des tampons **épinglés**
+(`GC.AllocateArray(pinned: true)`) que le ramasse-miettes ne déplace pas, et remis à zéro au
+verrouillage. Les limites sont ailleurs :
+
+- Pendant le déverrouillage, la création, la rotation du mot de passe et la restauration, la DEK et
+  la KEK transitent par des tableaux ordinaires, non épinglés. Ils sont effacés ensuite, mais le
+  ramasse-miettes a pu en laisser une copie entre-temps.
+- Le mot de passe maître, les secrets affichés ou édités et le contenu des documents existent sous
+  forme de `string` .NET : immuables, donc impossibles à effacer. Ils subsistent en mémoire jusqu'à
+  leur collecte.
+- **Rien ne protège contre un processus malveillant tournant sous le même compte Windows** :
+  lecture de la mémoire du processus, enregistreur de frappe.
+
+### Journal d'audit
+
+La chaîne de hachage détecte toute modification ou suppression intermédiaire. Le scellé HMAC, lui,
+n'est posé que **coffre ouvert** :
+
+- Les événements écrits coffre verrouillé — typiquement les échecs d'authentification — sont
+  chaînés mais non scellés jusqu'au déverrouillage suivant.
+- La suppression des **derniers** événements, postérieurs au dernier scellé, n'est pas détectable :
+  la chaîne restante reste cohérente.
+- Un attaquant qui détient la DEK peut recalculer la chaîne **et** le scellé, donc réécrire
+  l'historique intégralement. Le journal protège contre la falsification par un tiers, pas contre
+  celui qui a déjà la clé.
+
+### Temporisation anti force brute
+
+Le compteur d'échecs est stocké dans `vault.db` (`auth.failures`). Il ralentit les tentatives faites
+**à travers l'application**. Il n'offre aucune protection contre une attaque hors ligne sur une copie
+du fichier : celle-ci n'est freinée que par Argon2id (64 Mio, 3 passes, 4 voies) et par la force du
+mot de passe maître.
+
+### Index aveugle
+
+Le HMAC du nom d'utilisateur est **déterministe**. Sans la clé, on ne remonte pas à la valeur, mais
+deux identifiants partageant le même nom d'utilisateur portent le même index, visible dans le
+fichier. Un observateur apprend donc que plusieurs fiches utilisent le même compte, sans savoir
+lequel.
+
+### Sauvegardes
+
+L'en-tête d'un fichier `.ivbak` est authentifié mais **en clair** : nom du coffre, date de création,
+nombre de ressources, d'identifiants et de documents, et les enveloppes de la DEK.
+
+Surtout : une sauvegarde se déchiffre avec le mot de passe maître **en vigueur au moment où elle a
+été créée**. Changer le mot de passe maître ne protège pas les sauvegardes antérieures. Si vous
+changez de mot de passe parce que l'ancien a fuité, détruisez aussi les anciennes sauvegardes.
+
+### Presse-papiers
+
+Lors d'une copie, l'application demande au système d'exclure la valeur de l'historique du
+presse-papiers et du presse-papiers cloud, et l'efface après le délai configuré. **Ce sont des
+demandes**, pas des garanties : un gestionnaire de presse-papiers tiers peut les ignorer et
+conserver la valeur.
+
+### Autres
+
+- **Aucun audit de sécurité externe.** La conception est documentée et couverte par des tests, mais
+  personne d'indépendant ne l'a revue. Si vous avez les compétences, c'est la contribution la plus
+  utile que vous puissiez apporter.
+- **Argon2id provient du paquet tiers `Konscious.Security.Cryptography.Argon2`** (implémentation
+  managée). C'est une dépendance cryptographique externe, et un point qu'un relecteur voudra
+  examiner.
+- **Pas de migrations de schéma.** Un correctif imposant un changement de schéma ne pourra pas être
+  appliqué à un coffre existant tant qu'un mécanisme de migration n'aura pas été écrit.
+- **Pas de mode équipe.** Poser `vault.db` sur un partage réseau n'est pas supporté et n'offre
+  aucune des garanties décrites ici.
 
 ## Versions supportées
 

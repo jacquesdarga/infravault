@@ -186,8 +186,10 @@ scellé du journal a besoin de cette clé.
 ## Ce qui n'est pas en place
 
 - **Pas de DPAPI**, pas de Windows Hello.
-- **Pas de protection mémoire** au-delà de l'effacement explicite : la DEK vit dans le tas managé
-  pendant que le coffre est ouvert.
+- **Protection mémoire partielle.** La DEK et ses sous-clés sont dans des tampons épinglés, effacés
+  au verrouillage ; mais la DEK et la KEK transitent par des tableaux ordinaires pendant le
+  déverrouillage et la rotation, et les secrets affichés existent sous forme de `string` .NET,
+  impossibles à effacer. Le détail est dans [SECURITY.md](../SECURITY.md#mémoire).
 - **Pas de signature des binaires**, pas d'installeur.
 - **Pas de mode équipe.** Le partage d'un coffre entre plusieurs postes demande une conception
   cryptographique dédiée et ne doit pas être improvisé en posant la base SQLite sur un partage

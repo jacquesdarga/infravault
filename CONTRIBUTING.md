@@ -135,8 +135,18 @@ sera pas fusionnée — même si les tests, eux, ont été ajustés.
    fichier de coffre fabriqué qui réclamerait des gigaoctets de RAM.
 5. **Toute altération lève `IntegrityException`.** Aucun chemin ne doit renvoyer des données
    déchiffrées fausses.
-6. **La DEK ne sort pas de `VaultSession`** autrement que par `UseKey(...)`, et n'est jamais
-   conservée par l'appelant.
+6. **Une fois la session ouverte, seul `UseKey(...)` donne accès à la DEK**, et l'appelant ne la
+   conserve jamais. Le déchiffrement des enveloppes reste confiné à `AuthenticationService` et à
+   `BackupService.RestoreAsync` — ce sont les seuls endroits où la DEK existe hors de
+   `VaultSession`, et ils l'effacent dans un `finally`.
+
+### Faux positifs de scanners de secrets
+
+`src/InfraVault.Presentation/Diagnostics/SnapshotRunner.cs` contient deux littéraux qui ressemblent
+à des secrets : le mot de passe du coffre jetable servant aux captures, et une chaîne
+`password = hunter2hunter2` qui sert à déclencher volontairement `SecretLeakDetector`. Le fichier
+entier est encadré par `#if DEBUG` et absent des binaires Release. Si un scanner les signale, c'est
+un faux positif — ne les « corrigez » pas, le second test cesserait de tester quoi que ce soit.
 
 Si votre changement vous oblige à toucher à l'un de ces points, dites-le explicitement dans la
 description de la PR. Ce n'est pas interdit — c'est à discuter avant, pas à découvrir pendant la
