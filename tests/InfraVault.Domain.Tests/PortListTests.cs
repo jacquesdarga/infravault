@@ -129,4 +129,61 @@ public sealed class PortListTests
 
         Assert.Equal(once, PortList.Normalize(once));
     }
+
+    [Theory]
+    [InlineData("8100-8000", "8000-8100/tcp")]
+    [InlineData("32767-30000/udp", "30000-32767/udp")]
+    [InlineData("65535-1", "1-65535/tcp")]
+    public void Parse_remet_une_plage_inversee_dans_l_ordre(string input, string expected)
+    {
+        Assert.Equal([expected], PortList.Parse(input));
+    }
+
+    [Theory]
+    [InlineData("80-80", "80/tcp")]
+    [InlineData("80-80/udp", "80/udp")]
+    public void Parse_reduit_une_plage_d_un_seul_port(string input, string expected)
+    {
+        // « 80-80 » et « 80 » désignent la même chose : une seule écriture doit subsister.
+        Assert.Equal([expected], PortList.Parse(input));
+    }
+
+    [Theory]
+    [InlineData("0080", "80/tcp")]
+    [InlineData("00443/udp", "443/udp")]
+    [InlineData("00001", "1/tcp")]
+    [InlineData("0080-0443", "80-443/tcp")]
+    public void Parse_supprime_les_zeros_de_tete(string input, string expected)
+    {
+        Assert.Equal([expected], PortList.Parse(input));
+    }
+
+    [Fact]
+    public void Parse_conserve_tel_quel_un_nombre_trop_long_pour_etre_un_port()
+    {
+        // Au-delà de 5 chiffres l'expression ne reconnaît plus rien, même si la valeur est petite.
+        Assert.Equal(["000080"], PortList.Parse("000080"));
+    }
+
+    [Theory]
+    [InlineData("443, 0443, 00443")]
+    [InlineData("8000-8100, 8100-8000")]
+    [InlineData("80-80, 80, 0080")]
+    public void Parse_reconnait_les_ecritures_equivalentes_comme_un_doublon(string input)
+    {
+        // La normalisation n'a d'intérêt que si elle fait converger les écritures d'une même chose.
+        Assert.Single(PortList.Parse(input));
+    }
+
+    [Theory]
+    [InlineData("8100-8000")]
+    [InlineData("80-80")]
+    [InlineData("0080")]
+    [InlineData("443, 0443, 8100-8000, 80-80")]
+    public void Normalize_reste_idempotent_sur_les_formes_corrigees(string input)
+    {
+        var once = PortList.Normalize(input);
+
+        Assert.Equal(once, PortList.Normalize(once));
+    }
 }
