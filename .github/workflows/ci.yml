@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  # Retour rapide : les cinq projets de tests ne dépendent pas de WPF et tournent sous Linux.
+  tests-linux:
+    name: Tests (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer le SDK .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurer
+        run: dotnet restore InfraVault.slnx
+
+      - name: Compiler
+        run: dotnet build InfraVault.slnx -c Release --no-restore
+
+      - name: Tester
+        run: dotnet test InfraVault.slnx -c Release --no-build --logger "trx;LogFileName=resultats.trx" --results-directory artifacts/tests
+
+      - name: Publier les résultats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultats-tests-linux
+          path: artifacts/tests
+          if-no-files-found: warn
+
+  # La cible réelle du produit. Vérifie aussi que l'exécutable autonome se construit.
+  build-windows:
+    name: Build et tests (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer le SDK .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurer
+        run: dotnet restore InfraVault.slnx
+
+      - name: Compiler
+        run: dotnet build InfraVault.slnx -c Release --no-restore
+
+      - name: Tester
+        run: dotnet test InfraVault.slnx -c Release --no-build --logger "trx;LogFileName=resultats.trx" --results-directory artifacts/tests
+
+      - name: Publier l'exécutable autonome
+        run: dotnet publish src/InfraVault.Presentation/InfraVault.Presentation.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish
+
+      - name: Vérifier que l'exécutable est présent
+        shell: pwsh
+        run: |
+          if (-not (Test-Path artifacts/publish/InfraVault.exe)) {
+            throw "InfraVault.exe est absent du dossier de publication."
+          }
+
+      - name: Publier les résultats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultats-tests-windows
+          path: artifacts/tests
+          if-no-files-found: warn
+
+      - name: Publier le dossier portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: infravault-win-x64
+          path: artifacts/publish
+          retention-days: 14
