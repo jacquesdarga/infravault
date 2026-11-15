@@ -150,6 +150,8 @@ internal static class SnapshotRunner
             var docx = services.GetRequiredService<IArchitectureReportWriter>().Write(model, png, width / 2, height / 2);
             await File.WriteAllBytesAsync(Path.Combine(directory, "export-dossier-architecture.docx"), docx);
 
+            await FunctionalPassAsync(services, app, main, log);
+
             theme.Toggle();
             main.LockCommand.Execute(null);
             await Until(() => app.Screen is UnlockViewModel, 20);
@@ -163,6 +165,133 @@ internal static class SnapshotRunner
         }
         await File.WriteAllLinesAsync(Path.Combine(directory, "resultat.txt"), log);
         System.Windows.Application.Current.Shutdown();
+    }
+
+    /// <summary>Exerce les éditeurs comme le ferait un utilisateur (ViewModels réels, sur le fil d'interface).</summary>
+    private static async Task FunctionalPassAsync(IServiceProvider services, AppViewModel app, MainViewModel main, List<string> log)
+    {
+        var ui = services.GetRequiredService<UiContext>();
+        var infrastructure = services.GetRequiredService<InfrastructureService>();
+        var credentials = services.GetRequiredService<CredentialService>();
+
+        void Check(string label, bool ok) => log.Add((ok ? "ok    " : "ÉCHEC ") + label);
+
+        // Ressource : création par l'éditeur, avec parent et exposition Internet.
+        var before = (await infrastructure.ListAssetsAsync()).Count;
+        var parent = (await infrastructure.ListAssetsAsync()).First(a => a.Name == "Node 02");
+        var editor = ui.Create<AssetEditorDialogViewModel>(new AssetEditorArgs(null, parent.Id, "vm"));
+        var editorTask = app.Dialogs.ShowAsync<Guid?>(editor);
+        await Pause(600);
+        editor.Name = "vm-essai";
+        editor.Hostname = "vm-essai";
+        editor.IpAddress = "10.52.134.77";
+        editor.InternetExposed = true;
+        editor.ExposedPorts = "8443, 22/tcp";
+        editor.Tags = "Essai, capture";
+        foreach (var f in editor.Fields.Where(f => f.Definition.Key == "os")) f.Value = "Debian";
+        await editor.SaveCommand.ExecuteAsync(null);
+        var createdId = await editorTask;
+        Check("éditeur de ressource : création" + (editor.Error is null ? "" : " — " + editor.Error), createdId is not null);
+        Check("ressource ajoutée à l'inventaire", (await infrastructure.ListAssetsAsync()).Count == before + 1);
+        if (createdId is { } assetId)
+        {
+            var detail = await infrastructure.GetAssetAsync(assetId);
+            Check("ports exposés normalisés", detail?.Summary.ExposedPorts == "8443/tcp, 22/tcp");
+            Check("rattachée à son parent", detail?.Path.LastOrDefault()?.Name == "Node 02");
+            Check("propriété typée enregistrée", detail?.Properties.Any(p => p.Key == "os" && p.Value == "Debian") == true);
+
+            // Saisie invalide : l'éditeur doit rester ouvert avec un message.
+            var bad = ui.Create<AssetEditorDialogViewModel>(new AssetEditorArgs(assetId, null, null));
+            var badTask = app.Dialogs.ShowAsync<Guid?>(bad);
+            await Pause(500);
+            bad.IpAddress = "999.1.2";
+            await bad.SaveCommand.ExecuteAsync(null);
+            Check("adresse IP invalide refusée avec message", bad.Error is not null && !badTask.IsCompleted);
+            bad.Cancel();
+
+            // Relation avec ports.
+            var postgres = (await infrastructure.ListAssetsAsync()).First(a => a.Name == "PostgreSQL");
+            var relation = new RelationshipDialogViewModel(ui, infrastructure, detail!.Summary)
+            {
+                Other = PickItems.From(postgres), Ports = "5432",
+            };
+            var relationTask = app.Dialogs.ShowAsync<bool>(relation);
+            await relation.SaveCommand.ExecuteAsync(null);
+            Check("relation créée" + (relation.Error is null ? "" : " — " + relation.Error), await relationTask);
+            Check("ports de la relation enregistrés", (await infrastructure.GetRelationshipsAsync(assetId)).Any(r => r.Ports == "5432/tcp"));
+
+            // Identifiant : création, rotation (nouvelle version), consultation.
+            var credentialEditor = ui.Create<CredentialEditorDialogViewModel>(new CredentialEditorArgs(null, assetId));
+            var credentialTask = app.Dialogs.ShowAsync<Guid?>(credentialEditor);
+            await Pause(500);
+            credentialEditor.Name = "vm-essai — root";
+            credentialEditor.Username = "root";
+            credentialEditor.GenerateCommand.Execute(null);
+            var firstSecret = credentialEditor.Secret;
+            credentialEditor.Port = "22";
+            credentialEditor.SetExpiryCommand.Execute("90");
+            await credentialEditor.SaveCommand.ExecuteAsync(null);
+            var credentialId = await credentialTask;
+            Check("éditeur d'identifiant : création" + (credentialEditor.Error is null ? "" : " — " + credentialEditor.Error), credentialId is not null);
+            if (credentialId is { } cid)
+            {
+                Check("secret relu identique", await credentials.RevealSecretAsync(cid, SecretAccess.Internal) == firstSecret);
+                var rotate = ui.Create<CredentialEditorDialogViewModel>(new CredentialEditorArgs(cid, null));
+                var rotateTask = app.Dialogs.ShowAsync<Guid?>(rotate);
+                await Pause(600);
+                Check("édition : username rechargé", rotate.Username == "root");
+                rotate.GenerateCommand.Execute(null);
+                rotate.ChangeReason = "Rotation de contrôle";
+                await rotate.SaveCommand.ExecuteAsync(null);
+                await rotateTask;
+                var after = await credentials.GetAsync(cid);
+                Check("rotation : version 2 créée", after?.Summary.CurrentVersion == 2 && after.Versions.Count == 2);
+                Check("identifiant lié à la ressource", after?.Assets.Any(a => a.Id == assetId) == true);
+
+                main.Credentials(cid);
+                await Pause(800);
+                Check("fiche identifiant sélectionnée", (main.CurrentPage as CredentialsViewModel)?.Detail?.Summary.Id == cid);
+            }
+
+            // Recherche : IP, tag et username exact.
+            var search = services.GetRequiredService<SearchService>();
+            Check("recherche par IP", (await search.SearchAsync("10.52.134.77")).Total >= 1);
+            Check("recherche par tag", (await search.SearchAsync("essai")).Total >= 1);
+            Check("recherche par username exact", (await search.SearchAsync("root")).Groups.Any(g => g.Hits.Any(h => h.Title == "vm-essai — root")));
+
+            // Suppression contrôlée.
+            await infrastructure.DeleteAssetAsync(assetId, confirmDependencies: true);
+            Check("suppression contrôlée", await infrastructure.GetAssetAsync(assetId) is null);
+        }
+
+        // Paramètres : modification et relecture.
+        main.Settings();
+        await Pause(700);
+        if (main.CurrentPage is SettingsViewModel settings)
+        {
+            settings.AutoLockMinutes = 7;
+            Check("paramètres : modification détectée", settings.IsDirty);
+            await settings.SaveCommand.ExecuteAsync(null);
+            Check("paramètres : enregistrés", ui.Vault.Current.AutoLockMinutes == 7 && !settings.IsDirty);
+            settings.AutoLockMinutes = 10;
+            await settings.SaveCommand.ExecuteAsync(null);
+        }
+
+        // Documentation : création puis relecture du contenu déchiffré.
+        main.Documents();
+        await Pause(700);
+        if (main.CurrentPage is DocumentsViewModel documents)
+        {
+            documents.NewCommand.Execute(null);
+            documents.EditTitle = "Note de contrôle";
+            documents.EditContent = "# Contrôle\n\nTexte de **contrôle**.";
+            await documents.SaveCommand.ExecuteAsync(null);
+            await Pause(500);
+            Check("documentation : création et relecture", documents.Detail?.Summary.Title == "Note de contrôle" && documents.ViewContent.Contains("contrôle"));
+            documents.EditContent = "password = hunter2hunter2";
+            Check("documentation : détection d'un secret collé", documents.LeakWarning);
+        }
+        Check("journal d'audit intègre", (await services.GetRequiredService<AuditService>().VerifyAsync()).IsValid);
     }
 
     private static void Capture(Window window, string directory, string name)
