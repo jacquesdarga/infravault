@@ -38,6 +38,11 @@ ligne et à son champ, de sorte qu'un chiffré recopié d'une fiche vers une aut
 Le détail est dans [docs/security.md](docs/security.md), y compris ce que le produit **ne** protège
 pas.
 
+> **Le code n'a fait l'objet d'aucun audit de sécurité externe.** La conception est documentée et
+> couverte par des tests, mais personne d'indépendant ne l'a revue. Tenez-en compte avant de
+> confier à InfraVault les accès d'une infrastructure de production. Une relecture critique de la
+> couche cryptographique est la contribution la plus utile que vous puissiez apporter au projet.
+
 ---
 
 ## Construire
@@ -168,9 +173,40 @@ Volontairement explicite, pour éviter les mauvaises surprises :
   une.
 - **Pas de signature des binaires.**
 
+## Contribuer
+
+Les contributions sont bienvenues : correctifs, fonctionnalités, documentation, traductions, et
+surtout relecture critique du code cryptographique. [CONTRIBUTING.md](CONTRIBUTING.md) décrit
+comment construire, tester et proposer une pull request, ainsi que les invariants de sécurité
+qu'aucun changement ne doit casser.
+
+**Une faille de sécurité ne s'ouvre pas en issue publique.** La marche à suivre est dans
+[SECURITY.md](SECURITY.md).
+
 ## Licence
 
-**À définir.** Aucune licence n'a été choisie pour ce projet. En l'absence de licence explicite,
-tous les droits sont réservés par défaut : personne d'autre n'est autorisé à copier, modifier ou
-redistribuer ce code. Si le projet doit être partagé, choisissez une licence et remplacez le fichier
+InfraVault est distribué sous **GNU General Public License v3.0 ou ultérieure** — voir
 [LICENSE](LICENSE).
+
+Vous êtes libre d'utiliser, d'étudier, de modifier et de redistribuer ce logiciel. En contrepartie,
+toute version modifiée que vous distribuez doit l'être sous la même licence, sources comprises.
+
+Ce n'est pas une formalité : InfraVault détient les mots de passe de ses utilisateurs, et un
+gestionnaire de secrets ne vaut que par la possibilité d'inspecter ce qu'il fait. La GPL garantit
+que tout logiciel dérivé d'InfraVault reste inspectable par ceux qui lui confient leurs accès.
+
+```
+InfraVault — gestionnaire d'infrastructure et de secrets
+Copyright (C) 2026  <titulaire des droits — à compléter avant publication>
+
+Ce programme est un logiciel libre : vous pouvez le redistribuer et/ou le modifier selon
+les termes de la GNU General Public License telle que publiée par la Free Software
+Foundation, soit la version 3 de la licence, soit (à votre choix) toute version ultérieure.
+
+Ce programme est distribué dans l'espoir qu'il sera utile, mais SANS AUCUNE GARANTIE, ni
+même la garantie implicite de QUALITÉ MARCHANDE ou d'ADÉQUATION À UN USAGE PARTICULIER.
+Voir la GNU General Public License pour plus de détails.
+
+Vous devriez avoir reçu une copie de la GNU General Public License avec ce programme.
+Si ce n'est pas le cas, voir <https://www.gnu.org/licenses/>.
+```
