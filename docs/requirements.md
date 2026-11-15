@@ -77,7 +77,7 @@ test. Elle n'a pas été faite.
 | Pas de blocage de l'interface pendant les opérations longues | **Non couvert par les tests** — Argon2id est exécuté via `Task.Run`, mais le comportement de l'interface n'est pas testé automatiquement |
 | Gestion correcte des erreurs de base de données | **Oui** — base corrompue, tronquée, fichier qui n'est pas du SQLite, violations de clé étrangère et de contrainte |
 | Documentation technique disponible | **Oui** — ce dossier `docs/` |
-| Installation et désinstallation fiables | **Sans objet en l'état** — il n'y a pas d'installeur ; la livraison est un dossier portable, la désinstallation consiste à le supprimer |
+| Installation et désinstallation fiables | **Oui, non testé automatiquement** — installeur Inno Setup (`installer/`), installation par utilisateur sans élévation, désinstallation propre qui préserve volontairement les coffres. Aucun test automatisé ne couvre le cycle installation/désinstallation : il se vérifie à la main |
 
 ## Performance
 

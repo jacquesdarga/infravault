@@ -62,6 +62,18 @@ dotnet publish src/InfraVault.Presentation/InfraVault.Presentation.csproj -c Rel
 Le dossier `publish/` contient `InfraVault.exe` et tout ce dont il a besoin. Aucun runtime .NET n'est
 requis sur la machine cible.
 
+### Produire l'installeur Windows
+
+Avec [Inno Setup 6](https://jrsoftware.org/isinfo.php) installé, et une publication autonome déjà
+produite dans `artifacts/InfraVault-1.0.0-win-x64` :
+
+```bash
+ISCC.exe installer\InfraVault.iss
+```
+
+`artifacts/installer/InfraVault-1.0.0-setup.exe` en résulte. Voir
+[installer/README.md](installer/README.md) pour le détail, notamment la limite de signature.
+
 ### Depuis WSL, sans SDK .NET côté Windows
 
 La compilation de la couche WPF fonctionne sous Linux grâce à `EnableWindowsTargeting`, déjà présent
@@ -74,7 +86,14 @@ cd ~/infravault-build
 dotnet publish src/InfraVault.Presentation/InfraVault.Presentation.csproj -c Release -r win-x64 --self-contained true -o ~/infravault-publish
 ```
 
-## Lancer
+## Installer et lancer
+
+Deux formes de livraison :
+
+- **L'installeur** `InfraVault-1.0.0-setup.exe` — installation par utilisateur, sans droits
+  administrateur, avec raccourci et désinstallation propre. **La désinstallation ne supprime jamais
+  vos coffres** : ils restent dans `%LOCALAPPDATA%\InfraVault`, et le désinstalleur vous rappelle où.
+- **Le dossier portable** — décompressez et lancez, rien à installer.
 
 ```
 InfraVault.exe [--data-dir <dossier>]
@@ -163,8 +182,10 @@ par `#if DEBUG` et absent des binaires Release.
 
 Volontairement explicite, pour éviter les mauvaises surprises :
 
-- **Pas d'installeur** MSIX ou MSI. La livraison est un dossier portable ; la désinstallation
-  consiste à le supprimer.
+- **Installeur non signé.** Faute de certificat de signature de code, Windows SmartScreen
+  affichera un avertissement au téléchargement. Vérifiez l'empreinte SHA-256 publiée à côté du
+  fichier.
+- **Pas de paquet MSIX ou MSI**, pas de distribution par le Microsoft Store ou winget.
 - **Pas de migrations de schéma.** Le schéma est créé en version 1 ; faire évoluer un coffre
   existant demandera d'écrire un mécanisme de migration.
 - **Pas de Windows Hello**, pas de DPAPI.

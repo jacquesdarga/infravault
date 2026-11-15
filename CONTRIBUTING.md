@@ -172,7 +172,8 @@ Les manques sont connus et assumés. Si vous cherchez par où commencer :
 - **Tests d'interface.** La couche WPF n'est couverte par aucun test automatisé.
 - **Vérification de l'absence de trafic réseau.** Le critère « utilisation sans Internet » n'est
   pas testé, et un test naïf passerait toujours. Un relevé au pare-feu documenté serait utile.
-- **Installeur** MSIX ou MSI — il n'y en a pas.
+- **Signature de code.** L'installeur Inno Setup existe (`installer/`) mais n'est pas signé, donc
+  SmartScreen avertit l'utilisateur. Un paquet MSIX ou winget manque également.
 - **Traduction de l'interface.** Elle est entièrement en français.
 
 ## Licence

@@ -190,7 +190,9 @@ scellé du journal a besoin de cette clé.
   au verrouillage ; mais la DEK et la KEK transitent par des tableaux ordinaires pendant le
   déverrouillage et la rotation, et les secrets affichés existent sous forme de `string` .NET,
   impossibles à effacer. Le détail est dans [SECURITY.md](../SECURITY.md#mémoire).
-- **Pas de signature des binaires**, pas d'installeur.
+- **Pas de signature des binaires.** Ni l'exécutable ni l'installeur ne sont signés : SmartScreen
+  avertit l'utilisateur, et rien ne permet de distinguer une version authentique d'une version
+  modifiée par un tiers autrement qu'en comparant l'empreinte SHA-256 publiée.
 - **Pas de mode équipe.** Le partage d'un coffre entre plusieurs postes demande une conception
   cryptographique dédiée et ne doit pas être improvisé en posant la base SQLite sur un partage
   réseau.

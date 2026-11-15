@@ -117,7 +117,8 @@ parcourt les écrans et écrit des captures PNG. **Il est absent des binaires Re
 
 - **Pas de migrations EF.** Le schéma est créé par `EnsureCreated`, version 1. Faire évoluer le
   schéma demandera d'écrire un mécanisme de migration.
-- **Pas d'installeur** MSIX ou MSI. La livraison est un dossier portable autonome.
+- **Pas de paquet MSIX ou MSI.** La livraison se fait soit en dossier portable autonome, soit par
+  l'installeur Inno Setup (`installer/`), qui n'est pas signé.
 - **Pas de Windows Hello**, pas de DPAPI.
 - **Pas de mode équipe ni de synchronisation.** C'est une phase ultérieure du cahier des charges et
   elle demandera une conception cryptographique propre, pas une base partagée sur un réseau.
