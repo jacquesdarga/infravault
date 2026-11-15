@@ -17,10 +17,10 @@ jobs:
     name: Tests (Linux)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Installer le SDK .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -35,7 +35,7 @@ jobs:
 
       - name: Publier les résultats
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: resultats-tests-linux
           path: artifacts/tests
@@ -46,10 +46,10 @@ jobs:
     name: Build et tests (Windows)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Installer le SDK .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -74,14 +74,14 @@ jobs:
 
       - name: Publier les résultats
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: resultats-tests-windows
           path: artifacts/tests
           if-no-files-found: warn
 
       - name: Publier le dossier portable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: infravault-win-x64
           path: artifacts/publish

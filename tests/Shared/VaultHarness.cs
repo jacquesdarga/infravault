@@ -130,8 +130,23 @@ public sealed class VaultHarness : IAsyncDisposable
         var parts = new List<byte>();
         foreach (var path in new[] { Paths.DatabasePath, Paths.DatabasePath + "-wal" })
             if (File.Exists(path))
-                parts.AddRange(await File.ReadAllBytesAsync(path, ct).ConfigureAwait(false));
+                parts.AddRange(await ReadSharedAsync(path, ct).ConfigureAwait(false));
         return [.. parts];
+    }
+
+    /// <summary>
+    /// Lit un fichier que SQLite garde ouvert en écriture. Sous Windows, l'ouverture par défaut
+    /// (<c>FileShare.Read</c>) est refusée dans ce cas : il faut accepter explicitement les autres
+    /// titulaires du fichier. Sous Linux le problème ne se pose pas, d'où un échec visible
+    /// uniquement sur la plateforme que le produit cible.
+    /// </summary>
+    private static async Task<byte[]> ReadSharedAsync(string path, CancellationToken ct)
+    {
+        await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete, 81920, FileOptions.Asynchronous);
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer, ct).ConfigureAwait(false);
+        return buffer.ToArray();
     }
 
     public async ValueTask DisposeAsync()
