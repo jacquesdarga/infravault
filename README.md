@@ -197,7 +197,7 @@ que tout logiciel dérivé d'InfraVault reste inspectable par ceux qui lui confi
 
 ```
 InfraVault — gestionnaire d'infrastructure et de secrets
-Copyright (C) 2026  <titulaire des droits — à compléter avant publication>
+Copyright (C) 2026  Jacques DARGA
 
 Ce programme est un logiciel libre : vous pouvez le redistribuer et/ou le modifier selon
 les termes de la GNU General Public License telle que publiée par la Free Software
