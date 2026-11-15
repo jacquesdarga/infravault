@@ -126,6 +126,45 @@ Reprendre la spec précédente (champ `UpdateParent`, application du parent en c
   « Datacenters », « Hyperviseurs »…), avec l'entrée vide « — Aucun — » en tête.
 - Étendre `DefaultFor` en `DefaultFor(parentTypeKey, childTypeKey)`.
 
+### Cas particulier : stacks (Docker / Kubernetes) et conteneurs
+
+Entièrement couvert par le modèle existant — à exposer, pas à créer :
+
+- Le type **« Stack »** (`AssetTypeKeys.Stack`) existe, avec un champ **`orchestrator`** dont les
+  options couvrent déjà les deux mondes : *Docker Compose* et *Docker Swarm* (stack Docker), *Helm*
+  et *Kustomize* (stack Kubernetes), *Portainer*, *Autre*. **Pas besoin de types distincts
+  « docker stack » / « k8s stack »** : c'est l'orchestration qui les différencie.
+- Le type **« Conteneur »** (`AssetTypeKeys.Container`) existe (image, tag, ports publiés/internes,
+  réseaux, volumes, politique de redémarrage).
+- La relation **Stack `CONTAINS` Conteneur** est déjà le défaut (`DefaultFor(Stack)` → `CONTAINS`).
+
+Chaînes typiques, qui s'inscrivent dans l'arbre unique :
+
+```
+Serveur ⊃ Plateforme de conteneurs (Docker)     ⊃ Stack (Compose)      ⊃ Conteneur
+Serveur ⊃ Plateforme de conteneurs (Kubernetes)  ⊃ Stack (Helm release) ⊃ Conteneur (pod/service)
+```
+
+La plateforme de conteneurs est facultative : un stack peut être rattaché directement à un serveur
+si l'utilisateur ne modélise pas la plateforme.
+
+**Ce qu'il faut ajouter :**
+
+1. Dans le sélecteur de parent généralisé, pour un **Conteneur**, proposer en priorité les **Stacks**
+   (puis les plateformes de conteneurs). C'est déjà dans la matrice ci-dessus ; vérifier simplement
+   que `CONTAINS` est bien la relation déduite pour (Stack, Conteneur).
+2. Depuis la **fiche d'un Stack**, une action de confort **« Ajouter un conteneur »** qui ouvre la
+   création d'un Conteneur avec le parent **pré-rempli sur ce stack** (réutilise `ParentId` +
+   `UpdateParent` de la spec précédente). Évite de créer le conteneur puis de le rattacher en deux
+   temps.
+3. Symétriquement, une action **« Ajouter un stack »** depuis une plateforme de conteneurs ou un
+   serveur, parent pré-rempli.
+4. Sur la fiche d'un Stack, **lister ses conteneurs** (ses enfants `CONTAINS`) — c'est la lecture
+   réciproque de l'arbre, déjà disponible via les relations.
+
+Rien de cryptographique ni de schéma à changer : uniquement du câblage UI au-dessus de la hiérarchie
+générale.
+
 ## 4. « Retrouver tout ce qui est dans un bâtiment »
 
 L'arbre unifie déjà toutes les relations hiérarchiques (`GetTreeAsync`). Une fois les emplacements
@@ -191,3 +230,8 @@ En plus de ceux de la spec précédente (je peux les écrire une fois le code po
    emplacements et data centers.
 7. Déplacer un bâtiment sous une autre localité emporte tout son contenu dans l'arbre.
 8. Pas de cycle, un seul parent hiérarchique (rappel de la spec précédente).
+9. Créer un Stack (orchestration Docker Compose) puis lui ajouter des conteneurs → relation
+   `CONTAINS` stack → conteneur ; les conteneurs apparaissent sous le stack dans l'arbre.
+10. Créer un Stack (orchestration Helm) sous une plateforme Kubernetes, lui ajouter des conteneurs →
+    chaîne Plateforme `RUNS` Stack `CONTAINS` Conteneur.
+11. L'action « Ajouter un conteneur » depuis la fiche d'un stack pré-remplit le parent sur ce stack.
